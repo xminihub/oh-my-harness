@@ -73,9 +73,9 @@ fn run() -> Result<(), String> {
                 target::Scope::Project(&project)
             };
             let dests = install::Destinations {
-                skills: target::resolve_skills_dir(scope, &home),
-                agents: target::resolve_agents_dir(scope, &home),
-                commands: target::resolve_commands_dir(scope, &home),
+                skills: scope.dest(&home, target::Kind::Skills),
+                agents: scope.dest(&home, target::Kind::Agents),
+                commands: scope.dest(&home, target::Kind::Commands),
             };
             let report = install::install(repo, &dests, args.force, &install::SystemGit)?;
             for name in &report.installed {
@@ -197,6 +197,35 @@ mod tests {
     fn project_root_prefers_the_explicit_dir() {
         let root = project_root(Some(std::path::Path::new("proj"))).unwrap();
         assert_eq!(root, PathBuf::from("proj"));
+    }
+
+    #[test]
+    fn bare_install_resolves_destinations_under_cwd_agents() {
+        // The scope wiring run() performs: no -g, no -d → project scope at cwd.
+        let home = PathBuf::from("/home/u");
+        let scope = target::Scope::Project(&project_root(None).unwrap());
+        assert_eq!(
+            scope.dest(&home, target::Kind::Skills),
+            std::env::current_dir().unwrap().join(".agents/skills")
+        );
+        assert_eq!(
+            scope.dest(&home, target::Kind::Agents),
+            std::env::current_dir().unwrap().join(".agents/agents")
+        );
+        assert_eq!(
+            scope.dest(&home, target::Kind::Commands),
+            std::env::current_dir().unwrap().join(".agents/commands")
+        );
+    }
+
+    #[test]
+    fn global_flag_resolves_destinations_under_home_agents() {
+        let home = PathBuf::from("/home/u");
+        let scope = target::Scope::Global;
+        assert_eq!(
+            scope.dest(&home, target::Kind::Skills),
+            PathBuf::from("/home/u/.agents/skills")
+        );
     }
 
     #[test]

@@ -40,7 +40,7 @@ pub struct Report {
 }
 
 /// Where a repo's payload gets installed: the skills, agents and
-/// commands roots for either the global or a project-local configuration.
+/// commands directories for either the global or a project scope.
 #[derive(Debug, Clone)]
 pub struct Destinations {
     pub skills: PathBuf,
