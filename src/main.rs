@@ -10,7 +10,7 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
 
-const DEFAULT_REPO: &str = "https://github.com/sheltonsuen/oh-my-harness";
+const DEFAULT_REPO: &str = "https://github.com/xminihub/oh-my-harness";
 
 #[derive(Parser)]
 #[command(name = "omh", about = "Manage agent skills across your harness")]
@@ -147,6 +147,6 @@ mod tests {
 
     #[test]
     fn default_repo_is_the_harness_url() {
-        assert_eq!(DEFAULT_REPO, "https://github.com/sheltonsuen/oh-my-harness");
+        assert_eq!(DEFAULT_REPO, "https://github.com/xminihub/oh-my-harness");
     }
 }

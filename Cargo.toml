@@ -4,7 +4,7 @@ version = "0.2.4"
 edition = "2024"
 description = "Rust Version of oh-my-harness"
 license-file = "LICENSE"
-repository = "https://github.com/sheltonsuen/oh-my-harness"
+repository = "https://github.com/xminihub/oh-my-harness"
 
 [[bin]]
 name = "omh"

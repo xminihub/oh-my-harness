@@ -166,7 +166,7 @@ jobs:
       - name: Checkout tap repo
         uses: actions/checkout@v4
         with:
-          repository: sheltonsuen/homebrew-oh-my-harness
+          repository: xminihub/homebrew-oh-my-harness
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: tap
 
@@ -179,9 +179,9 @@ jobs:
           cat > tap/Formula/omh.rb <<EOF
           class Omh < Formula
             desc "Rust Version of oh-my-harness"
-            homepage "https://github.com/sheltonsuen/oh-my-harness"
+            homepage "https://github.com/xminihub/oh-my-harness"
             version "${VERSION}"
-            url "https://github.com/sheltonsuen/oh-my-harness/releases/download/v${VERSION}/omh-macos-arm64.tar.gz"
+            url "https://github.com/xminihub/oh-my-harness/releases/download/v${VERSION}/omh-macos-arm64.tar.gz"
             sha256 "${SHA}"
 
             def install
