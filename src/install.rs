@@ -39,7 +39,7 @@ pub struct Report {
     pub commands_skipped: Vec<String>,
 }
 
-/// Where a repo's payload gets installed: opencode's skills, agents and
+/// Where a repo's payload gets installed: the skills, agents and
 /// commands roots for either the global or a project-local configuration.
 #[derive(Debug, Clone)]
 pub struct Destinations {

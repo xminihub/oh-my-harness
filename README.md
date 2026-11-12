@@ -22,13 +22,14 @@ cargo install oh-my-harness
 ## Usage
 
 ```sh
-omh install [repo] [-d <project-dir>] [--force]
+omh install [repo] [-d <project-dir>] [-g|--global] [--force]
 ```
 
-`omh install` installs everything a repo ships into [opencode](https://opencode.ai):
+`omh install` installs everything a repo ships into your harness's `.agents` directories:
 
-- `skills/<name>/` folders → `~/.config/opencode/skills/` (or `<project>/.opencode/skills/` with `-d`)
-- top-level `agents/*.md` files → `~/.config/opencode/agents/` (or `<project>/.opencode/agents/` with `-d`)
-- top-level `commands/*.md` files → `~/.config/opencode/commands/` (or `<project>/.opencode/commands/` with `-d`)
+- `skills/<name>/` folders → `<project>/.agents/skills/` (or `~/.agents/skills/` with `-g`)
+- top-level `agents/*.md` files → `<project>/.agents/agents/` (or `~/.agents/agents/` with `-g`)
+- top-level `commands/*.md` files → `<project>/.agents/commands/` (or `~/.agents/commands/` with `-g`)
 
+Installs are project-level by default, rooted at the current directory or the project passed to `-d`; `-g`/`--global` installs into `~/.agents` instead (`-g` and `-d` conflict).
 `repo` is a git URL or local directory, and defaults to the oh-my-harness repo. Existing skills, agents, and commands are skipped unless `--force` overwrites them. A repo must ship at least one of `skills/`, `agents/`, or `commands/`; a missing directory just installs nothing of that kind.

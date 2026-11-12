@@ -1,36 +1,34 @@
-/// opencode's global skills root is ~/.config/opencode/skills while its
-/// project-local root is .opencode (a deliberate asymmetry).
-pub fn resolve_skills_dir(
-    project_dir: Option<&std::path::Path>,
-    home: &std::path::Path,
-) -> std::path::PathBuf {
-    match project_dir {
-        Some(dir) => dir.join(".opencode").join("skills"),
-        None => home.join(".config").join("opencode").join("skills"),
+/// Where an install lands: the user's home-level `.agents` root, or a
+/// project's own `.agents` root.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Scope<'a> {
+    /// Install into `<project>/.agents/…`.
+    Project(&'a std::path::Path),
+    /// Install into `~/.agents/…`.
+    Global,
+}
+
+/// The global skills root is ~/.agents/skills.
+pub fn resolve_skills_dir(scope: Scope<'_>, home: &std::path::Path) -> std::path::PathBuf {
+    match scope {
+        Scope::Global => home.join(".agents").join("skills"),
+        Scope::Project(dir) => dir.join(".agents").join("skills"),
     }
 }
 
-/// opencode's global agents root is ~/.config/opencode/agents while its
-/// project-local root is .opencode/agents.
-pub fn resolve_agents_dir(
-    project_dir: Option<&std::path::Path>,
-    home: &std::path::Path,
-) -> std::path::PathBuf {
-    match project_dir {
-        Some(dir) => dir.join(".opencode").join("agents"),
-        None => home.join(".config").join("opencode").join("agents"),
+/// The global agents root is ~/.agents/agents.
+pub fn resolve_agents_dir(scope: Scope<'_>, home: &std::path::Path) -> std::path::PathBuf {
+    match scope {
+        Scope::Global => home.join(".agents").join("agents"),
+        Scope::Project(dir) => dir.join(".agents").join("agents"),
     }
 }
 
-/// opencode's global commands root is ~/.config/opencode/commands while its
-/// project-local root is .opencode/commands.
-pub fn resolve_commands_dir(
-    project_dir: Option<&std::path::Path>,
-    home: &std::path::Path,
-) -> std::path::PathBuf {
-    match project_dir {
-        Some(dir) => dir.join(".opencode").join("commands"),
-        None => home.join(".config").join("opencode").join("commands"),
+/// The global commands root is ~/.agents/commands.
+pub fn resolve_commands_dir(scope: Scope<'_>, home: &std::path::Path) -> std::path::PathBuf {
+    match scope {
+        Scope::Global => home.join(".agents").join("commands"),
+        Scope::Project(dir) => dir.join(".agents").join("commands"),
     }
 }
 
@@ -40,38 +38,38 @@ mod tests {
     use std::path::Path;
 
     #[test]
-    fn commands_global_installs_to_config_opencode_commands() {
-        let dir = resolve_commands_dir(None, Path::new("/home/u"));
-        assert_eq!(dir, Path::new("/home/u/.config/opencode/commands"));
+    fn commands_global_installs_to_home_agents_commands() {
+        let dir = resolve_commands_dir(Scope::Global, Path::new("/home/u"));
+        assert_eq!(dir, Path::new("/home/u/.agents/commands"));
     }
 
     #[test]
-    fn commands_local_installs_to_dot_opencode_commands() {
-        let dir = resolve_commands_dir(Some(Path::new("/proj")), Path::new("/home/u"));
-        assert_eq!(dir, Path::new("/proj/.opencode/commands"));
+    fn commands_project_installs_to_dot_agents_commands() {
+        let dir = resolve_commands_dir(Scope::Project(Path::new("/proj")), Path::new("/home/u"));
+        assert_eq!(dir, Path::new("/proj/.agents/commands"));
     }
 
     #[test]
-    fn global_installs_to_config_opencode_skills() {
-        let dir = resolve_skills_dir(None, Path::new("/home/u"));
-        assert_eq!(dir, Path::new("/home/u/.config/opencode/skills"));
+    fn skills_global_installs_to_home_agents_skills() {
+        let dir = resolve_skills_dir(Scope::Global, Path::new("/home/u"));
+        assert_eq!(dir, Path::new("/home/u/.agents/skills"));
     }
 
     #[test]
-    fn local_installs_to_dot_opencode_skills() {
-        let dir = resolve_skills_dir(Some(Path::new("/proj")), Path::new("/home/u"));
-        assert_eq!(dir, Path::new("/proj/.opencode/skills"));
+    fn skills_project_installs_to_dot_agents_skills() {
+        let dir = resolve_skills_dir(Scope::Project(Path::new("/proj")), Path::new("/home/u"));
+        assert_eq!(dir, Path::new("/proj/.agents/skills"));
     }
 
     #[test]
-    fn agents_global_installs_to_config_opencode_agents() {
-        let dir = resolve_agents_dir(None, Path::new("/home/u"));
-        assert_eq!(dir, Path::new("/home/u/.config/opencode/agents"));
+    fn agents_global_installs_to_home_agents_agents() {
+        let dir = resolve_agents_dir(Scope::Global, Path::new("/home/u"));
+        assert_eq!(dir, Path::new("/home/u/.agents/agents"));
     }
 
     #[test]
-    fn agents_local_installs_to_dot_opencode_agents() {
-        let dir = resolve_agents_dir(Some(Path::new("/proj")), Path::new("/home/u"));
-        assert_eq!(dir, Path::new("/proj/.opencode/agents"));
+    fn agents_project_installs_to_dot_agents_agents() {
+        let dir = resolve_agents_dir(Scope::Project(Path::new("/proj")), Path::new("/home/u"));
+        assert_eq!(dir, Path::new("/proj/.agents/agents"));
     }
 }

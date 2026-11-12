@@ -21,7 +21,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Install skills, agents, and commands from a repo into opencode's roots
+    /// Install skills, agents, and commands from a repo into the .agents roots
     Install(InstallArgs),
 }
 
@@ -30,9 +30,13 @@ struct InstallArgs {
     /// Repo to install from: git URL or local directory (default: oh-my-harness)
     repo: Option<String>,
 
-    /// Install project-local into this project root instead of globally
-    #[arg(short = 'd', long = "dir")]
+    /// Install into this project root instead of the current directory
+    #[arg(short = 'd', long = "dir", conflicts_with = "global")]
     dir: Option<PathBuf>,
+
+    /// Install into ~/.agents instead of the project's .agents
+    #[arg(short = 'g', long = "global")]
+    global: bool,
 
     /// Overwrite skills, agents, and commands that already exist
     #[arg(long)]
@@ -45,16 +49,33 @@ fn home_dir() -> Result<PathBuf, String> {
         .ok_or_else(|| "HOME is not set".to_string())
 }
 
+/// The project root an install targets: `-d <dir>` when given, otherwise the
+/// current working directory.
+fn project_root(dir: Option<&std::path::Path>) -> Result<PathBuf, String> {
+    if let Some(d) = dir {
+        return Ok(d.to_path_buf());
+    }
+    std::env::current_dir()
+        .map(|cwd| cwd.as_path().to_path_buf())
+        .map_err(|e| format!("failed to determine the current directory: {e}"))
+}
+
 fn run() -> Result<(), String> {
     let cli = Cli::parse();
     match cli.command {
         Command::Install(args) => {
             let repo = args.repo.as_deref().unwrap_or(DEFAULT_REPO);
             let home = home_dir()?;
+            let project = project_root(args.dir.as_deref())?;
+            let scope = if args.global {
+                target::Scope::Global
+            } else {
+                target::Scope::Project(&project)
+            };
             let dests = install::Destinations {
-                skills: target::resolve_skills_dir(args.dir.as_deref(), &home),
-                agents: target::resolve_agents_dir(args.dir.as_deref(), &home),
-                commands: target::resolve_commands_dir(args.dir.as_deref(), &home),
+                skills: target::resolve_skills_dir(scope, &home),
+                agents: target::resolve_agents_dir(scope, &home),
+                commands: target::resolve_commands_dir(scope, &home),
             };
             let report = install::install(repo, &dests, args.force, &install::SystemGit)?;
             for name in &report.installed {
@@ -119,6 +140,7 @@ mod tests {
         let Command::Install(args) = &cli.command;
         assert!(args.repo.is_none());
         assert!(args.dir.is_none());
+        assert!(!args.global);
         assert!(!args.force);
     }
 
@@ -134,6 +156,26 @@ mod tests {
     }
 
     #[test]
+    fn global_flag_selects_global_scope() {
+        for form in ["-g", "--global"] {
+            let cli = Cli::try_parse_from(["omh", "install", form]).unwrap();
+            let Command::Install(args) = &cli.command;
+            assert!(args.global, "{form} should select global scope");
+        }
+    }
+
+    #[test]
+    fn global_and_dir_conflict() {
+        let err = Cli::try_parse_from(["omh", "install", "-g", "-d", "proj"])
+            .err()
+            .expect("-g with -d must be rejected");
+        assert!(
+            err.to_string().contains("--global") && err.to_string().contains("--dir"),
+            "error should name both conflicting flags: {err}"
+        );
+    }
+
+    #[test]
     fn agent_flag_is_no_longer_accepted() {
         let err = Cli::try_parse_from(["omh", "install", "-a", "opencode"])
             .err()
@@ -143,6 +185,18 @@ mod tests {
             .err()
             .unwrap();
         assert!(err.to_string().contains("unexpected argument"));
+    }
+
+    #[test]
+    fn project_root_defaults_to_the_current_directory() {
+        let root = project_root(None).unwrap();
+        assert_eq!(root, std::env::current_dir().unwrap());
+    }
+
+    #[test]
+    fn project_root_prefers_the_explicit_dir() {
+        let root = project_root(Some(std::path::Path::new("proj"))).unwrap();
+        assert_eq!(root, PathBuf::from("proj"));
     }
 
     #[test]
