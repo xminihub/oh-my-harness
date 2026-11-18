@@ -1,16 +1,16 @@
 [![CI](https://github.com/xminihub/oh-my-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/xminihub/oh-my-harness/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/oh-my-harness.svg)](https://crates.io/crates/oh-my-harness)
 [![Crates.io Downloads](https://img.shields.io/crates/d/oh-my-harness.svg)](https://crates.io/crates/oh-my-harness)
-[![Homebrew](https://img.shields.io/github/v/release/xminihub/oh-my-harness?label=homebrew&logo=homebrew)](https://github.com/xminihub/homebrew-oh-my-harness)
+[![Homebrew](https://img.shields.io/github/v/release/xminihub/oh-my-harness?label=homebrew&logo=homebrew)](https://github.com/xminihub/homebrew-tap)
 
 # oh-my-harness
 
 ## Installation
 
-### Homebrew (macOS)
+### Homebrew (macOS and Linux)
 
 ```sh
-brew install xminihub/homebrew-oh-my-harness/omh
+brew install xminihub/tap/omh
 ```
 
 ### Cargo (all platforms)

@@ -13,7 +13,11 @@ use clap::{Args, Parser, Subcommand};
 const DEFAULT_REPO: &str = "https://github.com/xminihub/oh-my-harness";
 
 #[derive(Parser)]
-#[command(name = "omh", about = "Manage agent skills across your harness")]
+#[command(
+    name = "omh",
+    version,
+    about = "Manage agent skills across your harness"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -132,7 +136,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use clap::Parser;
+    use clap::{CommandFactory, Parser};
 
     #[test]
     fn bare_install_parses_with_everything_default() {
@@ -231,5 +235,22 @@ mod tests {
     #[test]
     fn default_repo_is_the_harness_url() {
         assert_eq!(DEFAULT_REPO, "https://github.com/xminihub/oh-my-harness");
+    }
+
+    #[test]
+    fn version_flag_is_accepted_and_prints_the_crate_version() {
+        // The org tap's `brew test` runs `omh --version` and matches the
+        // formula version against it, so the flag must exist and carry the
+        // crate version.
+        let err = Cli::try_parse_from(["omh", "--version"])
+            .err()
+            .expect("--version must be recognized");
+        assert_eq!(err.kind(), clap::error::ErrorKind::DisplayVersion);
+        let rendered = Cli::command().render_version();
+        assert!(
+            rendered.contains(env!("CARGO_PKG_VERSION")),
+            "version output {rendered:?} should contain crate version {}",
+            env!("CARGO_PKG_VERSION")
+        );
     }
 }
